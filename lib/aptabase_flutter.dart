@@ -190,26 +190,50 @@ class Aptabase {
     };
   }
 
-  /// Records an event with the given name and optional properties.
+  // @Deprecated("Use the trackEventSync instead")
   Future<void> trackEvent(
     String eventName, [
     Map<String, dynamic>? props,
   ]) async {
-    if (_appKey.isEmpty || _apiUrl == null) {
+    trackEventSync(eventName, props);
+  }
+
+  /// Records an event with the given name and optional properties.
+  void trackEventSync(
+    String eventName, [
+    Map<String, dynamic>? props,
+  ]) {
+    if (_apiUrl == null) {
       _logInfo("Tracking is disabled!");
 
       return;
     }
 
-    final body = json.encode({
-      "timestamp": DateTime.now().toUtc().toIso8601String(),
-      "sessionId": _evalSessionId(),
-      "eventName": eventName,
-      "systemProps": await _systemProps(),
-      "props": props,
-    });
+    _addToQueue(eventName, props).ignore();
+  }
 
-    await _storage.add(body);
+  /// Add the event to queue with its props and handle the future
+  Future<void> _addToQueue(
+    String eventName, [
+    Map<String, dynamic>? props,
+  ]) async {
+    try {
+      final time = DateTime.now().toUtc();
+
+      final body = json.encode({
+        "timestamp": time.toIso8601String(),
+        "sessionId": _evalSessionId(),
+        "eventName": eventName,
+        "systemProps": await _systemProps(),
+        "props": props,
+      });
+
+      final key = "aptabase_${time.millisecondsSinceEpoch}_$eventName";
+
+      await _storage.addEvent(key, body);
+    } catch (e, s) {
+      _logError("Exception on add a new event to queue", e, s);
+    }
   }
 
   static Future<_SendResult> _send(List<String> events) async {
