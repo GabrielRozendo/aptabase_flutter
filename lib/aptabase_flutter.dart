@@ -190,7 +190,6 @@ class Aptabase {
     };
   }
 
-  // @Deprecated("Use the trackEventSync instead")
   Future<void> trackEvent(
     String eventName, [
     Map<String, dynamic>? props,
@@ -228,9 +227,7 @@ class Aptabase {
         "props": props,
       });
 
-      final key = "aptabase_${time.millisecondsSinceEpoch}_$eventName";
-
-      await _storage.addEvent(key, body);
+      await _storage.add(body);
     } catch (e, s) {
       _logError("Exception on add a new event to queue", e, s);
     }
