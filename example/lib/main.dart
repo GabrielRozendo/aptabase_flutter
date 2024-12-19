@@ -71,8 +71,17 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    Aptabase.instance.trackEventSync("app opened");
+  }
+
   void _incrementCounter() {
+    // Async or sync:
     Aptabase.instance.trackEvent("increment", {"counter": _counter});
+    // no await:
+    Aptabase.instance.trackEventSync("increment", {"counter": _counter});
 
     setState(() {
       // This call to setState tells the Flutter framework that something has
