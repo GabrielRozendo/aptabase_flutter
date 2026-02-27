@@ -1,0 +1,112 @@
+# Aptabase — Flutter SDK
+
+> Flutter SDK for Aptabase, an open-source, privacy-first analytics platform for Mobile, Desktop, and Web apps. GDPR-compliant, no cookies, no tracking of personal data.
+
+Package: `aptabase_flutter`
+Install: `flutter pub add aptabase_flutter`
+Registry: https://pub.dev/packages/aptabase_flutter
+Repo: https://github.com/aptabase/aptabase_flutter
+
+## Overview
+
+Aptabase is an open-source, privacy-first analytics platform. This SDK integrates Aptabase into Flutter apps.
+
+- Get your App Key from the Aptabase dashboard (Settings > Instructions)
+- App keys follow the format `A-EU-*` (European), `A-US-*` (US), or `A-SH-*` (self-hosted)
+- Only strings and numbers are allowed as custom property values
+- All tracking is non-blocking and runs in the background
+- No events are tracked automatically — you must call `trackEvent` manually
+
+## Installation
+
+```shell
+flutter pub add aptabase_flutter
+```
+
+### Android Requirement
+
+Add internet permission to `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+## Initialization
+
+Initialize the SDK in your `main.dart` before `runApp`:
+
+```dart
+import 'package:aptabase_flutter/aptabase_flutter.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Aptabase.init('<YOUR_APP_KEY>');
+
+  runApp(const MyApp());
+}
+```
+
+**Important:** Your `main` function must be `async` and you must call `WidgetsFlutterBinding.ensureInitialized()` before `Aptabase.init`.
+
+## Track Events
+
+```dart
+import 'package:aptabase_flutter/aptabase_flutter.dart';
+
+// Track a simple event
+Aptabase.instance.trackEvent('app_started');
+
+// No need to await — runs in the background
+Aptabase.instance.trackEvent('button_clicked');
+```
+
+## Track Events with Properties
+
+```dart
+Aptabase.instance.trackEvent('purchase_completed', {
+  'product': 'Premium Plan',
+  'price': 9.99,
+  'currency': 'USD',
+});
+
+Aptabase.instance.trackEvent('level_completed', {
+  'level': 5,
+  'score': 1200,
+});
+```
+
+Property values must be strings or numbers (int, double). No booleans, lists, or maps.
+
+## Configuration
+
+Pass `InitOptions` as the second argument to `Aptabase.init`:
+
+```dart
+await Aptabase.init(
+  '<YOUR_APP_KEY>',
+  const InitOptions(
+    host: 'https://your-self-hosted-instance.com', // only for self-hosted (A-SH-* keys)
+    tickDuration: Duration(seconds: 30),            // flush interval (default: 30s)
+    batchLength: 25,                                // max events per batch (default/max: 25)
+    printDebugMessages: false,                      // enable SDK debug logging
+  ),
+);
+```
+
+- `host` — Required only for self-hosted instances (`A-SH-*` app keys)
+- `tickDuration` — How often queued events are flushed to the server (default: 30 seconds)
+- `batchLength` — Max events sent per flush (default and max: 25)
+- `printDebugMessages` — Enable SDK debug logging via `developer.log`
+
+## Platform Notes
+
+- Supported platforms: Android, iOS, macOS, Web, Linux, Windows
+- Sessions auto-rotate after 1 hour of inactivity
+- Events are queued locally and sent in batches for reliability
+- The SDK automatically collects OS name, OS version, locale, app version, and build number
+- Debug mode is auto-detected via `kDebugMode`
+- When submitting to the Apple App Store, see the [App Privacy guide](https://aptabase.com/docs/apple-app-privacy)
+
+## Cross-Discovery
+
+For all Aptabase SDKs and documentation, see: https://aptabase.com/llms.txt
