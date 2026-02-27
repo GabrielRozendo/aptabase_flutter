@@ -1,6 +1,6 @@
 /// The Flutter SDK for Aptabase, a privacy-first and
 /// simple analytics platform for apps.
-library aptabase_flutter;
+library;
 
 import "dart:async";
 import "dart:convert";
@@ -27,7 +27,7 @@ enum _SendResult { disabled, success, discard, tryAgain }
 class Aptabase {
   Aptabase._();
 
-  static const _sdkVersion = "aptabase_flutter@0.4.2";
+  static const _sdkVersion = "aptabase_flutter@0.4.3";
   static const _sessionTimeout = Duration(hours: 1);
 
   static const Map<String, String> _hosts = {
@@ -204,7 +204,7 @@ class Aptabase {
       "props": props,
     });
 
-    final key = "aptabase_${time.millisecondsSinceEpoch}_$eventName";
+    final key = "${time.millisecondsSinceEpoch}_$eventName";
 
     await _storage.addEvent(key, body);
   }

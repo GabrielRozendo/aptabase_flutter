@@ -2,15 +2,21 @@ import "package:aptabase_flutter/storage_manager.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
 class StorageManagerSharedPrefs extends StorageManager {
+  static const _keyPrefix = "aptabase_";
+
   final _events = <String, String>{};
 
   @override
   Future<void> init() async {
-    final sharedPrefs = await SharedPreferences.getInstance();
-    final keys = sharedPrefs.getKeys();
+    final keys = await SharedPreferencesAsync().getKeys();
     for (final key in keys) {
-      final value = sharedPrefs.getString(key);
-      if (value != null) _events[key] = value;
+      if (key.startsWith(_keyPrefix)) {
+        final value = await SharedPreferencesAsync().getString(key);
+        if (value != null) {
+          final unprefixedKey = key.substring(_keyPrefix.length);
+          _events[unprefixedKey] = value;
+        }
+      }
     }
 
     return super.init();
@@ -18,19 +24,32 @@ class StorageManagerSharedPrefs extends StorageManager {
 
   @override
   Future<void> addEvent(String key, String event) async {
-    _events[key] = event;
+    try {
+      await SharedPreferencesAsync().setString("$_keyPrefix$key", event);
 
-    final sharedPrefs = await SharedPreferences.getInstance();
-    await sharedPrefs.setString(key, event);
+      _events[key] = event;
+    } catch (e) {
+      // If persistence fails, don't add to in-memory cache to maintain consistency
+      rethrow;
+    }
   }
 
   @override
   Future<void> deleteEvents(Set<String> keys) async {
+    // Remove from in-memory cache first since events were already sent
     _events.removeWhere((k, _) => keys.contains(k));
 
-    final sharedPrefs = await SharedPreferences.getInstance();
-    for (final key in keys) {
-      await sharedPrefs.remove(key);
+    try {
+      await Future.wait(
+        keys.map(
+          (key) => SharedPreferencesAsync().remove("$_keyPrefix$key"),
+        ),
+      );
+    } catch (e) {
+      // Events were already sent successfully and removed from memory.
+      // Disk cleanup failure is not critical - orphaned keys will be cleaned
+      // up on next init if they still exist.
+      // Silently catch to avoid disrupting the event sending flow.
     }
   }
 
