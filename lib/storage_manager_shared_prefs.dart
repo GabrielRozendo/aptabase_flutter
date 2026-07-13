@@ -3,19 +3,18 @@ import "package:shared_preferences/shared_preferences.dart";
 
 class StorageManagerSharedPrefs extends StorageManager {
   static const _keyPrefix = "aptabase_";
-
   final _events = <String, String>{};
 
   @override
   Future<void> init() async {
     final keys = await SharedPreferencesAsync().getKeys();
-    for (final key in keys) {
-      if (key.startsWith(_keyPrefix)) {
-        final value = await SharedPreferencesAsync().getString(key);
-        if (value != null) {
-          final unprefixedKey = key.substring(_keyPrefix.length);
-          _events[unprefixedKey] = value;
-        }
+
+    for (final key in keys.where((key) => key.startsWith(_keyPrefix))) {
+      final value = await SharedPreferencesAsync().getString(key);
+
+      if (value != null) {
+        final unprefixedKey = key.substring(_keyPrefix.length);
+        _events[unprefixedKey] = value;
       }
     }
 
