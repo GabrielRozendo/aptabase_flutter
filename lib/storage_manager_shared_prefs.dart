@@ -4,13 +4,14 @@ import "package:shared_preferences/shared_preferences.dart";
 class StorageManagerSharedPrefs extends StorageManager {
   static const _keyPrefix = "aptabase_";
   final _events = <String, String>{};
+  final _prefs = SharedPreferencesAsync();
 
   @override
   Future<void> init() async {
-    final keys = await SharedPreferencesAsync().getKeys();
+    final keys = await _prefs.getKeys();
 
     for (final key in keys.where((key) => key.startsWith(_keyPrefix))) {
-      final value = await SharedPreferencesAsync().getString(key);
+      final value = await _prefs.getString(key);
 
       if (value != null) {
         final unprefixedKey = key.substring(_keyPrefix.length);
@@ -24,7 +25,7 @@ class StorageManagerSharedPrefs extends StorageManager {
   @override
   Future<void> addEvent(String key, String event) async {
     try {
-      await SharedPreferencesAsync().setString("$_keyPrefix$key", event);
+      await _prefs.setString("$_keyPrefix$key", event);
 
       _events[key] = event;
     } catch (e) {
@@ -39,11 +40,7 @@ class StorageManagerSharedPrefs extends StorageManager {
     _events.removeWhere((k, _) => keys.contains(k));
 
     try {
-      await Future.wait(
-        keys.map(
-          (key) => SharedPreferencesAsync().remove("$_keyPrefix$key"),
-        ),
-      );
+      await Future.wait(keys.map((key) => _prefs.remove("$_keyPrefix$key")));
     } catch (e) {
       // Events were already sent successfully and removed from memory.
       // Disk cleanup failure is not critical - orphaned keys will be cleaned
