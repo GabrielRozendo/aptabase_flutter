@@ -1,3 +1,8 @@
+## 0.5.1
+
+* Raise `universal_io` to ^2.3.1 and `shared_preferences` to ^2.5.6
+* Update the example app to `material_ui` / `cupertino_ui` and newer `hive_ce` packages
+
 ## 0.5.0
 
 * Update `device_info_plus` (11.1.1 up to 13.x) and `package_info_plus` (8.3.1 up to 10.x) with iOS/macOS Swift Package Manager support

@@ -1,6 +1,6 @@
 import 'package:aptabase_flutter/aptabase_flutter.dart';
 import 'package:example/storage_manager_hive.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
